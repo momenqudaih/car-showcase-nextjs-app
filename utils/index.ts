@@ -1,6 +1,11 @@
+import { CarProps, FilterProps } from '@types';
+import { type } from 'os';
+
 const axios = require('axios');
 
-export const fetchCars = async () => {
+export const fetchCars = async (filters: FilterProps) => {
+    const { manufacturer, year, model, limit, fuel } = filters;
+
     const headers = {
         'X-RapidAPI-Key': '85dcbc15fcmsh326160ae45fe8d3p1729d4jsnb9141c58ee5c',
         'X-RapidAPI-Host': 'cars-by-api-ninjas.p.rapidapi.com',
@@ -9,7 +14,13 @@ export const fetchCars = async () => {
     const response = await axios.get(
         'https://cars-by-api-ninjas.p.rapidapi.com/v1/cars',
         {
-            params: { model: 'corolla' },
+            params: {
+                make: manufacturer,
+                year,
+                model,
+                limit,
+                fuel_type: fuel,
+            },
             headers,
         },
     );
@@ -30,4 +41,33 @@ export const calculateCarRent = (city_mpg: number, year: number) => {
     const rentalRatePerDay = basePricePerDay + mileageRate + ageRate;
 
     return rentalRatePerDay.toFixed(0);
+};
+
+export const generateCarImageUrl = (car: CarProps, angle?: string) => {
+    const url = new URL('https://cdn.imagin.studio/getimage');
+    const { make, model, year } = car;
+
+    url.searchParams.append(
+        'customer',
+        process.env.NEXT_PUBLIC_IMAGIN_API_KEY || 'hrjavascript-mastery',
+    );
+    url.searchParams.append('make', make);
+    url.searchParams.append('modelFamily', model.split(' ')[0]);
+    url.searchParams.append('zoomType', 'fullscreen');
+    url.searchParams.append('modelYear', `${year}`);
+    // url.searchParams.append('zoomLevel', zoomLevel);
+    url.searchParams.append('angle', `${angle}`);
+
+    return `${url}`;
+};
+
+export const updateSearchParams = (type: string, value: string) => {
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set(type, value);
+
+    const newPathName = `${
+        window.location.pathname
+    }?${searchParams.toString()}`;
+
+    return newPathName;
 };
